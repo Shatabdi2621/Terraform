@@ -60,3 +60,61 @@ Environment-specific variables are stored in the environments directory:
 - `dev.tfvars`: Development environment
 - `staging.tfvars`: Staging environment
 - `prod.tfvars`: Production environment
+
+## Prerequisites
+- [Terraform CLI](https://developer.hashicorp.com/terraform/downloads)
+- Properly configured cloud provider credentials (e.g., AWS CLI, Azure CLI), here we are using Azure CLI. 
+
+## Backend Configuration
+The `backend.tf` file defines the remote backend for storing the Terraform state.  
+Before running Terraform, **you must replace the default backend configuration** with the remote backend of your choice (e.g., S3, Azure Blob Storage, GCS, etc.).
+
+Example for Azure Storage Account/Blob Storage:
+
+```hcl
+terraform {
+  backend "azurerm" {
+    resource_group_name  = "terraform-state-rg"
+    storage_account_name = "terraformstate12345"
+    container_name       = "tfstate"
+    key                  = "terraform.tfstate"
+  }
+}
+```
+
+## Running Terraform in Stages
+Each environment (`dev`, `staging`, `prod`) has its own variable definitions located in the `environments/` folder.
+Replace `<env>` with the desired environment name.
+
+### Initialize Terraform
+```bash
+terraform init
+```
+
+### Plan Terraform
+```bash
+terraform plan -var-file="environments/<env>.tfvars"
+```
+
+### Apply Terraform
+```bash
+terraform apply -var-file="environments/<env>.tfvars"
+```
+
+### Destroy Terraform
+```bash
+terraform destroy -var-file="environments/<env>.tfvars"
+```
+
+## Example
+```bash
+terraform init
+terraform plan -var-file="environments/dev.tfvars"
+terraform apply -var-file="environments/dev.tfvars"
+```
+
+## Notes
+
+- Make sure your cloud credentials are properly configured before running the scripts.
+- If you’re using additional modules, conditionally include them as needed in `main.tf`.
+- You may also use Terraform workspaces as an alternative to `.tfvars`-based separation.
